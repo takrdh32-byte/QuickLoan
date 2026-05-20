@@ -21,17 +21,42 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+      - name: Setup Gradle (handles wrapper automatically)
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.2'
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Upload Debug APK
+      - name: Sign APK (installable on any phone)
+        uses: ilharp/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDir: app/build/outputs/apk/debug
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        continue-on-error: true
+
+      - name: Upload Signed APK
+        if: steps.sign_app.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuickLoan-SIGNED-APK
+          path: ${{ steps.sign_app.outputs.signedFile }}
+          retention-days: 30
+
+      - name: Upload Unsigned APK (backup)
         uses: actions/upload-artifact@v4
         with:
           name: QuickLoan-Debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Show result
+        run: |
+          echo "=== APK Files ==="
+          find app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
