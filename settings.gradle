@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "QuickLoanApp"
+rootProject.name = "QuickLoan"
 include ':app'
