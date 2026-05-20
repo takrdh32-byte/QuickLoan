@@ -21,22 +21,17 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Setup Gradle 8.2
+        uses: gradle/actions/setup-gradle@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          gradle-version: '8.2'
 
-      - name: Generate gradlew
-        run: |
-          gradle wrapper --gradle-version 8.2 --distribution-type bin
-          chmod +x gradlew
+      - name: Generate Gradle Wrapper
+        run: gradle wrapper --gradle-version=8.2 --distribution-type=bin
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
@@ -47,8 +42,3 @@ jobs:
           name: QuickLoan-Debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
-
-      - name: Show Build Output
-        run: |
-          echo "=== BUILD COMPLETE ==="
-          find app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
