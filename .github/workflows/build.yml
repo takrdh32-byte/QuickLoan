@@ -24,6 +24,15 @@ jobs:
         with:
           gradle-version: '8.2'
 
+      - name: Move index.html to assets
+        run: |
+          mkdir -p app/src/main/assets
+          if [ -f "app/src/main/index.html" ]; then
+            mv app/src/main/index.html app/src/main/assets/index.html
+            echo "Moved successfully!"
+          fi
+          ls app/src/main/assets/
+
       - name: Build Debug APK
         run: gradle assembleDebug --no-daemon
         env:
